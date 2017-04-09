@@ -1,46 +1,54 @@
-var express = require('express');
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
+/*
+ * app.js - Express server static files
+ */
 
-var index = require('./routes/index');
-var users = require('./routes/users');
+/*jslint         node    : true, continue : true,
+ devel  : true, indent  : 2,    maxerr   : 50,
+ newcap : true, nomen   : true, plusplus : true,
+ regexp : true, sloppy  : true, vars     : false,
+ white  : true
+ */
+/*global */
 
-var app = express();
+// ------------ BEGIN MODULE SCOPE VARIABLES --------------
+'use strict';
+var
+    http    = require( 'http'    ),
+    express = require( 'express' ),
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+    app     = express(),
+    server  = http.createServer( app );
+// ------------- END MODULE SCOPE VARIABLES ---------------
 
-// uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-app.use(logger('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: false}));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/', index);
-app.use('/users', users);
-
-// catch 404 and forward to error handler
-app.use(function (req, res, next) {
-    var err = new Error('Not Found');
-    err.status = 404;
-    next(err);
+// ------------- BEGIN SERVER CONFIGURATION ---------------
+app.configure( function () {
+    app.use( express.bodyParser() );
+    app.use( express.methodOverride() );
+    app.use( express.static( __dirname + '/public' ) );
+    app.use( app.router );
 });
 
-// error handler
-app.use(function (err, req, res, next) {
-    // set locals, only providing error in development
-    res.locals.message = err.message;
-    res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-    // render the error page
-    res.status(err.status || 500);
-    res.render('error');
+app.configure( 'development', function () {
+    app.use( express.logger() );
+    app.use( express.errorHandler({
+        dumpExceptions : true,
+        showStack      : true
+    }) );
 });
 
-module.exports = app;
+app.configure( 'production', function () {
+    app.use( express.errorHandler() );
+});
+
+app.get( '/', function ( request, response ) {
+    response.redirect( '/spa.html' );
+});
+// -------------- END SERVER CONFIGURATION ----------------
+
+// ----------------- BEGIN START SERVER -------------------
+server.listen( 3000 );
+console.log(
+    'Express server listening on port %d in %s mode',
+    server.address().port, app.settings.env
+);
+// ------------------ END START SERVER --------------------
